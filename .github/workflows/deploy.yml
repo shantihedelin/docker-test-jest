@@ -1,0 +1,61 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  test:
+    name: Test with RTL
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Repo
+        uses: actions/checkout@v4
+ 
+      - name: Set up Node.js
+      - uses: actions/setup-node@v4
+        with:
+         node-version: "20"
+
+      - name: Go to frontend folder
+        run: cd frontend
+
+      - name: Install Dependecies
+      - run: npm install
+
+      - name: Run Tests
+        run: npm run test:ci
+        env:
+          CI: true
+
+
+  deployment:
+    needs: test
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Repo
+        uses: actions/checkout@v4
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          source: "."
+          target: "/home/ubuntu/docker-test"
+
+      - name: Run Docker on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          script: |
+            cd /home/ubuntu/docker-test
+            sudo docker-compose down
+            sudo docker-compose up --build -d
