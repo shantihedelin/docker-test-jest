@@ -6,7 +6,6 @@ on:
       - main
 
 jobs:
-
   test:
     name: Test with RTL
     runs-on: ubuntu-latest
@@ -14,24 +13,21 @@ jobs:
     steps:
       - name: Check out Repo
         uses: actions/checkout@v4
- 
+
       - name: Set up Node.js
-      - uses: actions/setup-node@v4
+        uses: actions/setup-node@v4
         with:
-         node-version: "20"
+          node-version: "20"
 
-
-
-      - name: Install Dependecies
+      - name: Install Dependencies
+        run: npm install
         working-directory: ./frontend
-      - run: npm install
 
       - name: Run Tests
-        working-directory: ./frontend
         run: npm run test:ci
+        working-directory: ./frontend
         env:
           CI: true
-
 
   deployment:
     needs: test
@@ -60,3 +56,4 @@ jobs:
             cd /home/ubuntu/docker-test
             sudo docker-compose down
             sudo docker-compose up --build -d
+
